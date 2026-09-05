@@ -1,6 +1,6 @@
 name: eufy-security-ws (patched heartbeat)
-description: Patched eufy-security-ws - P2P heartbeat tolerance raised (MAX_RETRIES 10->24) to survive a busy HomeBase during detection events
-version: "3.1.0-hb24"
+description: Patched eufy-security-ws - heartbeat tolerance raised (MAX_RETRIES 10->24) + eufy-security-client swapped to martijnpoppen fork v4.2.6 (fixes Eufy backend migration breakage of 2026-09-04)
+version: "3.1.0-hb24-mp426"
 slug: "eufy_security_ws_patched"
 url: https://github.com/jvnega/eufy-security-ws-patched
 init: false
