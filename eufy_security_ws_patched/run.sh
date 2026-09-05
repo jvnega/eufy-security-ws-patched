@@ -40,13 +40,20 @@ STATION_IP_ADDRESSES_JQ=""
 if bashio::config.has_value 'stations'; then
     while read -r data
     do
-        TMP_DATA=($(echo "${data}" | tr -d "{}\"[:blank:]" | tr "," " " | sed 's/serial_number://g;s/ip_address://g'))
+        # Parse by KEY NAME, never positionally: the Supervisor is free to
+        # reorder object keys (e.g. ip_address before serial_number), which
+        # broke the old tr/sed positional parsing and crashed the add-on.
+        STATION_SERIAL="$(echo "${data}" | jq -r '.serial_number // empty' 2>/dev/null)"
+        STATION_IP="$(echo "${data}" | jq -r '.ip_address // empty' 2>/dev/null)"
+        if [ -z "$STATION_SERIAL" ] || [ -z "$STATION_IP" ]; then
+            continue
+        fi
         if [ "$STATION_IP_ADDRESSES_ARG" = "" ]; then
-            STATION_IP_ADDRESSES_ARG="--arg ${TMP_DATA[0]} ${TMP_DATA[1]}"
-            STATION_IP_ADDRESSES_JQ="stationIPAddresses: { \$${TMP_DATA[0]}"
+            STATION_IP_ADDRESSES_ARG="--arg ${STATION_SERIAL} ${STATION_IP}"
+            STATION_IP_ADDRESSES_JQ="stationIPAddresses: { \$${STATION_SERIAL}"
         else
-            STATION_IP_ADDRESSES_ARG="$STATION_IP_ADDRESSES_ARG --arg ${TMP_DATA[0]} ${TMP_DATA[1]}"
-            STATION_IP_ADDRESSES_JQ="$STATION_IP_ADDRESSES_JQ, \$${TMP_DATA[0]}"
+            STATION_IP_ADDRESSES_ARG="$STATION_IP_ADDRESSES_ARG --arg ${STATION_SERIAL} ${STATION_IP}"
+            STATION_IP_ADDRESSES_JQ="$STATION_IP_ADDRESSES_JQ, \$${STATION_SERIAL}"
         fi
     done <<<"$(bashio::config 'stations')"
     if [ "$STATION_IP_ADDRESSES_ARG" != "" ]; then
